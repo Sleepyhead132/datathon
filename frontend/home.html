@@ -1,1 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Analysis with Plotly.js</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <h1>Data Analysis</h1>
+
+    <!-- Dropdown to select graph type -->
+    <label for="graphSelect">Select Graph Type:</label>
+    <select id="graphSelect">
+        <option value="hour">Orders by Hour</option>
+        <option value="date">Orders by Date</option>
+    </select>
+
+    <h2>Orders Graph</h2>
+    <div id="graphContainer" style="width: 100%; height: 600px;"></div> <!-- Plotly chart will be rendered here -->
+
+    <script>
+        // Function to fetch data and update the graph using Plotly.js
+        function fetchDataAndUpdateGraph(apiEndpoint) {
+            fetch(apiEndpoint)
+                .then(response => response.json())
+                .then(data => {
+                    // Prepare the data for the graph
+                    const labels = data.map(entry => entry.Hour || entry.Date); // X-axis labels (Hour or Date)
+                    const orderCounts = data.map(entry => entry.Order_Count); // Y-axis data (Order Counts)
+
+                    // Create the graph using Plotly.js
+                    const graphData = [{
+                        x: labels,
+                        y: orderCounts,
+                        type: 'scatter',  // Type of graph: 'scatter' for line chart, 'bar' for bar chart, etc.
+                        mode: 'lines+markers',  // Can be 'lines', 'markers', 'lines+markers', etc.
+                        marker: { color: 'rgb(75, 192, 192)' },  // Customize the line color
+                        name: 'Order Count'
+                    }];
+                    
+                    const layout = {
+                        title: 'Orders by Hour or Date',
+                        xaxis: {
+                            title: 'Hour / Date',
+                        },
+                        yaxis: {
+                            title: 'Order Count',
+                        },
+                        showlegend: true
+                    };
+
+                    // Plot the chart inside the graphContainer div
+                    Plotly.newPlot('graphContainer', graphData, layout);
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
+
+        // Event listener for dropdown selection change
+        document.getElementById('graphSelect').addEventListener('change', function() {
+            const selectedValue = this.value;  // Get the selected value
+            if (selectedValue === 'hour') {
+                fetchDataAndUpdateGraph('http://127.0.0.1:8000/api/orders-by-hour');
+            } else if (selectedValue === 'date') {
+                fetchDataAndUpdateGraph('http://127.0.0.1:8000/api/orders-by-date');
+            }
+        });
+
+        // Fetch the initial graph data (orders by hour) when the page loads
+        window.onload = function() {
+            fetchDataAndUpdateGraph('http://127.0.0.1:8000/api/orders-by-hour');
+        }
+    </script>
+</body>
+</html>
 
